@@ -29,9 +29,10 @@ class YOLOv3(object):
     def __call__(self, ori_img):
         # img to tensor
         assert isinstance(ori_img, np.ndarray), "input must be a numpy array!"
-        img = ori_img.astype(np.float)/255.
-
-        img = cv2.resize(img, self.size)
+        # img = ori_img.astype(np.float)/255.
+        #
+        # img = cv2.resize(img, self.size)
+        img = cv2.resize(ori_img.astype(np.float32)/255., self.size)
         img = torch.from_numpy(img).float().permute(2,0,1).unsqueeze(0)
         # forward
         with torch.no_grad():
@@ -90,9 +91,17 @@ class YOLOv3(object):
         return img
 
 if __name__ == '__main__':
-    yolo3 = YOLOv3("cfg/yolo_v3.cfg","yolov3.weights","cfg/coco.names", is_plot=True)
+    yolo3 = YOLOv3("cfg/yolo_v3.cfg","yolov3.weights","cfg/coco.names", is_plot=True,use_cuda=False)
     print("yolo3.size =",yolo3.size)
     import os
+
+    # img = cv2.imread('../examples/1.jpg')
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # res = yolo3(img)
+    # cv2.namedWindow("yolo3", cv2.WINDOW_NORMAL)
+    # cv2.resizeWindow("yolo3", 600,600)
+    # cv2.imshow("yolo3",res[:,:,(2,1,0)])
+    # cv2.waitKey(0)
     root = "../demo"
     files = [os.path.join(root,file) for file in os.listdir(root)]
     files.sort()
