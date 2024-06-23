@@ -60,7 +60,8 @@ class Detector(object):
                     bbox_xcycwh[:, 3:] *= 1.2
 
                     # cls_conf = cls_conf[mask]
-                    outputs = self.deepsort.update(bbox_xcycwh, cls_conf, frame)
+                    outputs = self.deepsort.update(bbox_xcycwh, cls_conf,
+                                                   frame)  # outputs is a list of the form: <[[bbox coordinates],id]>
                     # print(outputs)
                     if len(outputs) > 0:
                         # print(bbox_xcycwh, cls_conf, cls_ids)
