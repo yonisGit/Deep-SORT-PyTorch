@@ -1,6 +1,7 @@
 # vim: expandtab:ts=4:sw=4
+import time
 
-
+#   TODO: IMPORTANT
 class TrackState:
     """
     Enumeration type for the single target track state. Newly created tracks are
@@ -71,6 +72,7 @@ class Track:
         self.hits = 1
         self.age = 1
         self.time_since_update = 0
+        # self.time_alive = time.time()
 
         self.state = TrackState.Tentative
         self.features = []
