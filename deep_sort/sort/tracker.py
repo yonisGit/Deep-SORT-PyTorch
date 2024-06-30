@@ -6,6 +6,10 @@ from . import linear_assignment
 from . import iou_matching
 from .track import Track
 
+MAX_IOU = 0.7
+N_INIT = 5
+
+
 #   TODO: IMPORTANT
 class Tracker:
     """
@@ -37,7 +41,7 @@ class Tracker:
 
     """
 
-    def __init__(self, metric, max_iou_distance=0.7, max_age=70, n_init=3):
+    def __init__(self, metric, max_iou_distance=MAX_IOU, max_age=70, n_init=N_INIT):
         self.metric = metric
         self.max_iou_distance = max_iou_distance
         self.max_age = max_age
@@ -103,6 +107,7 @@ class Tracker:
             return cost_matrix
 
         # Split track set into confirmed and unconfirmed tracks.
+        # Confirmed are tracks that appeared in at least n_init frames.
         confirmed_tracks = [
             i for i, t in enumerate(self.tracks) if t.is_confirmed()]
         unconfirmed_tracks = [
