@@ -11,6 +11,8 @@ from util import COLORS_10, draw_bboxes
 from reid.builder import build_reid
 from reid.utils import crop_imgs
 import torch
+
+
 class Detector(object):
     def __init__(self, args):
         self.args = args
@@ -34,6 +36,7 @@ class Detector(object):
         self.im_width = int(self.vdo.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.im_height = int(self.vdo.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+        # TODO: video saving doesn't work yet
         if self.args.save_path:
             fourcc = cv2.VideoWriter_fourcc(*'MJPG')
             self.output = cv2.VideoWriter(self.args.save_path, fourcc, 20, (self.im_width, self.im_height))
@@ -55,19 +58,20 @@ class Detector(object):
                 # cv2.imshow("lala", frame)
                 # cv2.waitKey(0)
                 bbox_xcycwh, cls_conf, cls_ids, = self.yolo3(frame)
-                img_metas = {}
-                crops = crop_imgs(img=frame, img_metas=img_metas, bboxes=torch.tensor(bbox_xcycwh).clone(),
-                                 rescale=False)
-                embeds = self.reid.simple_test(crops)
+
+                # self.reid_testing(bbox_xcycwh, frame)
 
                 if bbox_xcycwh is not None:
                     # select class person
                     # mask = cls_ids == (2 or 7)
+                    cls_ids_clone = cls_ids
+                    cls_ids_clone += 1  # added 1 because comparison with 0 didn't work for some reason...
+                    mask = cls_ids_clone == 1  # looking only for person class
 
-                    # bbox_xcycwh = bbox_xcycwh[mask]
+                    bbox_xcycwh = bbox_xcycwh[mask]
                     bbox_xcycwh[:, 3:] *= 1.2
 
-                    # cls_conf = cls_conf[mask]
+                    cls_conf = cls_conf[mask]
                     outputs = self.deepsort.update(bbox_xcycwh, cls_conf,
                                                    frame)  # outputs is a list of the form: <[[bbox coordinates],id]>
                     # print(outputs)
@@ -93,6 +97,12 @@ class Detector(object):
             self.vdo.release()
         if self.args.save_path:
             self.output.release()
+
+    def reid_testing(self, bbox_xcycwh, frame):
+        img_metas = {}
+        crops = crop_imgs(img=frame, img_metas=img_metas, bboxes=torch.tensor(bbox_xcycwh).clone(),
+                          rescale=False)
+        embeds = self.reid.simple_test(crops)
 
 
 def parse_args():
