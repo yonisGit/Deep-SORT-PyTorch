@@ -53,10 +53,8 @@ class Detector(object):
             start = time.time()
             ret, frame = self.vdo.read()
 
-            if ret == True:
+            if ret:
 
-                # cv2.imshow("lala", frame)
-                # cv2.waitKey(0)
                 bbox_xcycwh, cls_conf, cls_ids, = self.yolo3(frame)
 
                 # self.reid_testing(bbox_xcycwh, frame)
@@ -74,9 +72,8 @@ class Detector(object):
                     cls_conf = cls_conf[mask]
                     outputs = self.deepsort.update(bbox_xcycwh, cls_conf,
                                                    frame)  # outputs is a list of the form: <[[bbox coordinates],id]>
-                    # print(outputs)
+
                     if len(outputs) > 0:
-                        # print(bbox_xcycwh, cls_conf, cls_ids)
                         bbox_xyxy = outputs[:, :4]
                         identities = outputs[:, -1]
                         frame = draw_bboxes(frame, bbox_xyxy, identities)
