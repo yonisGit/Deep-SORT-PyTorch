@@ -11,6 +11,7 @@ from util import COLORS_10, draw_bboxes
 from reid.builder import build_reid
 from reid.utils import crop_imgs
 import torch
+from ultralytics import YOLO
 
 
 class Detector(object):
@@ -26,6 +27,7 @@ class Detector(object):
         self.vdo = cv2.VideoCapture()
         self.yolo3 = YOLOv3(args.yolo_cfg, args.yolo_weights, args.yolo_names, is_xywh=True,
                             conf_thresh=args.conf_thresh, nms_thresh=args.nms_thresh, use_cuda=use_cuda)
+        self.yolo_new = YOLO("yolov5n.pt")
         self.deepsort = DeepSort(args.deepsort_checkpoint, use_cuda=use_cuda)
         self.class_names = self.yolo3.class_names
         self.reid = build_reid()
@@ -56,7 +58,10 @@ class Detector(object):
             if ret:
 
                 bbox_xcycwh, cls_conf, cls_ids, = self.yolo3(frame)
+                frame_results = self.yolo_new(frame)[0].boxes
 
+                bbox_xcycwh, cls_conf, cls_ids, = frame_results.xywh.numpy(), frame_results.conf.numpy(), frame_results.cls.numpy()
+                
                 # self.reid_testing(bbox_xcycwh, frame)
 
                 if bbox_xcycwh is not None:
