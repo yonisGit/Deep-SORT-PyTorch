@@ -68,6 +68,17 @@ def softmin(x):
     return x_exp / x_exp.sum()
 
 
+def adjust_normalized_boxes(bboxes, h, w):
+    if len(bboxes) == 0:
+        return bboxes
+
+    bboxes[:, 0] *= w
+    bboxes[:, 2] *= w
+    bboxes[:, 1] *= h
+    bboxes[:, 3] *= h
+    return bboxes
+
+
 if __name__ == '__main__':
     x = np.arange(10) / 10.
     x = np.array([0.5, 0.5, 0.5, 0.6, 1.])

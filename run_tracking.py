@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 from distutils.util import strtobool
 
+from util import adjust_normalized_boxes
 from YOLOv3 import YOLOv3
 from deep_sort import DeepSort
 from util import COLORS_10, draw_bboxes
@@ -13,6 +14,7 @@ from reid.utils import crop_imgs
 import torch
 from ultralytics import YOLO
 from VMD.vmd import VMD
+
 
 class Detector(object):
     def __init__(self, args):
@@ -58,25 +60,31 @@ class Detector(object):
             ret, frame = self.vdo.read()
 
             if ret:
-                results = self.vmd(frame)
+                results = self.vmd(frame).to_numpy()
                 # bbox_xcycwh, cls_conf, cls_ids, = self.yolo3(frame)
-                frame_results = self.yolo_new(frame,conf=0.05)[0].boxes
+                frame_results = self.yolo_new(frame, conf=0.05)[0].boxes
 
-                bbox_xcycwh, cls_conf, cls_ids, = frame_results.xywh.numpy(), frame_results.conf.numpy(), frame_results.cls.numpy()
-                
+                cls_conf = np.ones(results.shape[0])
+                cls_ids = np.zeros_like(cls_conf)
+                print(frame.shape)
+                bbox_xcycwh = adjust_normalized_boxes(results, frame.shape[0], frame.shape[1])
+
+                bbox_xcycwh1, cls_conf1, cls_ids1, = frame_results.xywh.numpy(), frame_results.conf.numpy(), frame_results.cls.numpy()
+
                 # self.reid_testing(bbox_xcycwh, frame)
 
-                if bbox_xcycwh is not None:
+                # if bbox_xcycwh is not None:
+                if len(bbox_xcycwh) > 0:
                     # select class person
                     # mask = cls_ids == (2 or 7)
                     cls_ids_clone = cls_ids
                     cls_ids_clone += 1  # added 1 because comparison with 0 didn't work for some reason...
                     mask = cls_ids_clone == 1  # looking only for person class
 
-                    bbox_xcycwh = bbox_xcycwh[mask]
-                    bbox_xcycwh[:, 3:] *= 1.2
+                    # bbox_xcycwh = bbox_xcycwh[mask]
+                    # bbox_xcycwh[:, 3:] *= 1.2
 
-                    cls_conf = cls_conf[mask]
+                    # cls_conf = cls_conf[mask]
                     outputs = self.deepsort.update(bbox_xcycwh, cls_conf,
                                                    frame)  # outputs is a list of the form: <[[bbox coordinates],id]>
 
@@ -90,10 +98,10 @@ class Detector(object):
 
                 self.output.write(frame)
                 # ims = cv2.resize(frame, (960, 540))
-                cv2.imshow('tracks', frame)
+                # cv2.imshow('tracks', frame)
                 cv2.imwrite(f'out/im_{time.time()}.jpg', frame)
-                if cv2.waitKey(1) & 0xFF == ord('s'):
-                    pass
+                # if cv2.waitKey(1) & 0xFF == ord('s'):
+                #     pass
 
             # Break the loop
             else:
