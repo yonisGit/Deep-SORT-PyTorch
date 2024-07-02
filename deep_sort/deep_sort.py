@@ -8,9 +8,9 @@ from .sort.tracker import Tracker
 
 __all__ = ['DeepSort']
 MIN_CONFIDENCE = 0.3
-MIN_CONFIDENCE = 0.1
+# MIN_CONFIDENCE = 0.1
 MAX_DIST = 0.15
-MAX_DIST = 0.05
+# MAX_DIST = 0.1
 
 
 class DeepSort(object):
