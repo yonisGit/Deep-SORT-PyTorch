@@ -13,7 +13,7 @@ from util import COLORS_10, draw_bboxes
 import torch
 from ultralytics import YOLO
 
-# height, width = (720, 1280)
+height, width = (720, 1280)
 
 
 class Detector(object):
@@ -45,8 +45,8 @@ class Detector(object):
 
     def detect(self):
 
-        # fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        # video = cv2.VideoWriter(self.args.save_path, fourcc, 25., (width, height))
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        video = cv2.VideoWriter(self.args.save_path, fourcc, 25., (width, height))
         while True:
             start = time.time()
             ret, frame = self.vdo.read()
