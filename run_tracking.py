@@ -1,21 +1,23 @@
-import os
-import cv2
-import time
 import argparse
-import numpy as np
+import os
+import time
 from distutils.util import strtobool
 
-from util import adjust_normalized_boxes
-from YOLOv3 import YOLOv3
+import cv2
+import numpy as np
+import torch
+
+from VMD.vmd import VMD
 from deep_sort import DeepSort
-from util import COLORS_10, draw_bboxes
 from reid.builder import build_reid
 from reid.utils import crop_imgs
-import torch
-from ultralytics import YOLO
-from VMD.vmd import VMD
+from util import adjust_normalized_boxes
+from util import draw_bboxes
+
+FPS = 25.
 
 VMD_CONFIG = "VMD/configs/Altitude=100_motion=False_resolution=(512, 640).yaml"
+height, width = (1080, 1920)
 
 
 class Detector(object):
@@ -26,7 +28,7 @@ class Detector(object):
         self.vdo = cv2.VideoCapture()
         self.vmd = VMD.from_yaml(VMD_CONFIG)
         self.deepsort = DeepSort(args.deepsort_checkpoint, use_cuda=use_cuda)
-        self.class_names = self.yolo3.class_names
+        self.mask_irrelevant_classes = False
         self.reid = build_reid()
 
     def __enter__(self):
@@ -43,40 +45,24 @@ class Detector(object):
             print(exc_type, exc_value, exc_traceback)
 
     def detect(self):
-        frames = []
-        height, width = (1080, 1920)
+
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        video = cv2.VideoWriter(self.args.save_path, fourcc, 25., (width, height))
-        while (True):
+        video = cv2.VideoWriter(self.args.save_path, fourcc, FPS, (width, height))
+        while True:
             start = time.time()
             ret, frame = self.vdo.read()
 
             if ret:
                 results = self.vmd(frame).to_numpy()
-                # bbox_xcycwh, cls_conf, cls_ids, = self.yolo3(frame)
-                # frame_results = self.yolo_new(frame, conf=0.05)[0].boxes
 
                 cls_conf = np.ones(results.shape[0])
                 cls_ids = np.zeros_like(cls_conf)
-                print(frame.shape)
+
                 bbox_xcycwh = adjust_normalized_boxes(results, frame.shape[0], frame.shape[1])
 
-                # bbox_xcycwh1, cls_conf1, cls_ids1, = frame_results.xywh.numpy(), frame_results.conf.numpy(), frame_results.cls.numpy()
-
-                # self.reid_testing(bbox_xcycwh, frame)
-
-                # if bbox_xcycwh is not None:
                 if len(bbox_xcycwh) > 0:
-                    # select class person
-                    # mask = cls_ids == (2 or 7)
-                    cls_ids_clone = cls_ids
-                    cls_ids_clone += 1  # added 1 because comparison with 0 didn't work for some reason...
-                    mask = cls_ids_clone == 1  # looking only for person class
-
-                    # bbox_xcycwh = bbox_xcycwh[mask]
-                    # bbox_xcycwh[:, 3:] *= 1.2
-
-                    # cls_conf = cls_conf[mask]
+                    if self.mask_irrelevant_classes:
+                        bbox_xcycwh, cls_conf = mask_irrelevant_classes(bbox_xcycwh, cls_conf, cls_ids)
                     outputs = self.deepsort.update(bbox_xcycwh, cls_conf,
                                                    frame)  # outputs is a list of the form: <[[bbox coordinates],id]>
 
@@ -95,17 +81,27 @@ class Detector(object):
         if self.vdo:
             self.vdo.release()
 
-    def reid_testing(self, bbox_xcycwh, frame):
-        img_metas = {}
-        crops = crop_imgs(img=frame, img_metas=img_metas, bboxes=torch.tensor(bbox_xcycwh).clone(),
-                          rescale=False)
-        embeds = self.reid.simple_test(crops)
+
+def mask_irrelevant_classes(self, bbox_xcycwh, cls_conf, cls_ids):
+    cls_ids_clone = cls_ids
+    cls_ids_clone += 1  # added 1 because comparison with 0 didn't work for some reason...
+    mask = cls_ids_clone == 1  # looking only for person class
+    bbox_xcycwh = bbox_xcycwh[mask]
+    bbox_xcycwh[:, 3:] *= 1.2
+    cls_conf = cls_conf[mask]
+    return bbox_xcycwh, cls_conf
+
+
+def reid_testing(self, bbox_xcycwh, frame):
+    img_metas = {}
+    crops = crop_imgs(img=frame, img_metas=img_metas, bboxes=torch.tensor(bbox_xcycwh).clone(),
+                      rescale=False)
+    embeds = self.reid.simple_test(crops)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--VIDEO_PATH", type=str)
-    # parser.add_argument("--display", dest='feature', action='store_false') # DOES NOT WORK YET
     parser.add_argument("--yolo_cfg", type=str, default="YOLOv3/cfg/yolo_v3.cfg")
     parser.add_argument("--yolo_weights", type=str, default="YOLOv3/yolov3.weights")
     parser.add_argument("--yolo_names", type=str, default="YOLOv3/cfg/coco.names")
