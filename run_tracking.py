@@ -43,9 +43,9 @@ class Detector(object):
         self.im_height = int(self.vdo.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
         # TODO: video saving doesn't work yet
-        if self.args.save_path:
-            fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-            self.output = cv2.VideoWriter(self.args.save_path, fourcc, 20, (self.im_width, self.im_height))
+        # if self.args.save_path:
+        #     fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        #     self.output = cv2.VideoWriter(self.args.save_path, fourcc, 20, (self.im_width, self.im_height))
 
         assert self.vdo.isOpened()
         return self
@@ -55,6 +55,10 @@ class Detector(object):
             print(exc_type, exc_value, exc_traceback)
 
     def detect(self):
+        frames = []
+        height, width = (1080,1920)
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        video = cv2.VideoWriter(self.args.save_path, fourcc, 25., (width, height))
         while (True):
             start = time.time()
             ret, frame = self.vdo.read()
@@ -95,22 +99,23 @@ class Detector(object):
 
                 end = time.time()
                 print("time: {}s, fps: {}".format(end - start, 1 / (end - start)))
-
-                self.output.write(frame)
+                video.write(frame)
+                # self.output.write(frame)
                 # ims = cv2.resize(frame, (960, 540))
                 # cv2.imshow('tracks', frame)
-                cv2.imwrite(f'out/im_{time.time()}.jpg', frame)
+                # cv2.imwrite(f'out/im_{time.time()}.jpg', frame)
                 # if cv2.waitKey(1) & 0xFF == ord('s'):
                 #     pass
-
+                frames.append(frame)
             # Break the loop
             else:
+                video.release()
                 break
 
         if self.vdo:
             self.vdo.release()
-        if self.args.save_path:
-            self.output.release()
+        # if self.args.save_path:
+        #     video.release()
 
     def reid_testing(self, bbox_xcycwh, frame):
         img_metas = {}

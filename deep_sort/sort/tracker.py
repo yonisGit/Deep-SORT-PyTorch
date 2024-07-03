@@ -6,8 +6,8 @@ from . import linear_assignment
 from . import iou_matching
 from .track import Track
 
-MAX_IOU = 0.6
-N_INIT = 3
+MAX_IOU = 0.4
+N_INIT = 6
 
 
 #   TODO: IMPORTANT
@@ -41,7 +41,7 @@ class Tracker:
 
     """
 
-    def __init__(self, metric, max_iou_distance=MAX_IOU, max_age=170, n_init=N_INIT):
+    def __init__(self, metric, max_iou_distance=MAX_IOU, max_age=1700, n_init=N_INIT):
         self.metric = metric
         self.max_iou_distance = max_iou_distance
         self.max_age = max_age
