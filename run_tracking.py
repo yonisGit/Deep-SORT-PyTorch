@@ -15,23 +15,16 @@ import torch
 from ultralytics import YOLO
 from VMD.vmd import VMD
 
+VMD_CONFIG = "VMD/configs/Altitude=100_motion=False_resolution=(512, 640).yaml"
+
 
 class Detector(object):
     def __init__(self, args):
         self.args = args
         use_cuda = bool(strtobool(self.args.use_cuda))
 
-        if args.display:
-            pass
-            # cv2.namedWindow("test", cv2.WINDOW_NORMAL)
-            # cv2.resizeWindow("test", args.display_width, args.display_height)
-
         self.vdo = cv2.VideoCapture()
-        self.yolo3 = YOLOv3(args.yolo_cfg, args.yolo_weights, args.yolo_names, is_xywh=True,
-                            conf_thresh=args.conf_thresh, nms_thresh=args.nms_thresh, use_cuda=use_cuda)
-        self.yolo_new = YOLO("yolov8n.pt")
-        self.yolo_new = YOLO("yolov8n-seg.pt")
-        self.vmd = VMD.from_yaml("VMD/configs/Altitude=100_motion=False_resolution=(512, 640).yaml")
+        self.vmd = VMD.from_yaml(VMD_CONFIG)
         self.deepsort = DeepSort(args.deepsort_checkpoint, use_cuda=use_cuda)
         self.class_names = self.yolo3.class_names
         self.reid = build_reid()
@@ -42,11 +35,6 @@ class Detector(object):
         self.im_width = int(self.vdo.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.im_height = int(self.vdo.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-        # TODO: video saving doesn't work yet
-        # if self.args.save_path:
-        #     fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        #     self.output = cv2.VideoWriter(self.args.save_path, fourcc, 20, (self.im_width, self.im_height))
-
         assert self.vdo.isOpened()
         return self
 
@@ -56,7 +44,7 @@ class Detector(object):
 
     def detect(self):
         frames = []
-        height, width = (1080,1920)
+        height, width = (1080, 1920)
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         video = cv2.VideoWriter(self.args.save_path, fourcc, 25., (width, height))
         while (True):
@@ -66,14 +54,14 @@ class Detector(object):
             if ret:
                 results = self.vmd(frame).to_numpy()
                 # bbox_xcycwh, cls_conf, cls_ids, = self.yolo3(frame)
-                frame_results = self.yolo_new(frame, conf=0.05)[0].boxes
+                # frame_results = self.yolo_new(frame, conf=0.05)[0].boxes
 
                 cls_conf = np.ones(results.shape[0])
                 cls_ids = np.zeros_like(cls_conf)
                 print(frame.shape)
                 bbox_xcycwh = adjust_normalized_boxes(results, frame.shape[0], frame.shape[1])
 
-                bbox_xcycwh1, cls_conf1, cls_ids1, = frame_results.xywh.numpy(), frame_results.conf.numpy(), frame_results.cls.numpy()
+                # bbox_xcycwh1, cls_conf1, cls_ids1, = frame_results.xywh.numpy(), frame_results.conf.numpy(), frame_results.cls.numpy()
 
                 # self.reid_testing(bbox_xcycwh, frame)
 
@@ -100,22 +88,12 @@ class Detector(object):
                 end = time.time()
                 print("time: {}s, fps: {}".format(end - start, 1 / (end - start)))
                 video.write(frame)
-                # self.output.write(frame)
-                # ims = cv2.resize(frame, (960, 540))
-                # cv2.imshow('tracks', frame)
-                # cv2.imwrite(f'out/im_{time.time()}.jpg', frame)
-                # if cv2.waitKey(1) & 0xFF == ord('s'):
-                #     pass
-                frames.append(frame)
-            # Break the loop
             else:
                 video.release()
                 break
 
         if self.vdo:
             self.vdo.release()
-        # if self.args.save_path:
-        #     video.release()
 
     def reid_testing(self, bbox_xcycwh, frame):
         img_metas = {}
@@ -139,7 +117,7 @@ def parse_args():
     parser.add_argument("--display_width", type=int, default=800)
     parser.add_argument("--display_height", type=int, default=600)
     parser.add_argument("--save_path", type=str, default="out/demo.mp4")
-    parser.add_argument("--use_cuda", type=str, default="False")
+    parser.add_argument("--use_cuda", type=str, default="True")
     return parser.parse_args()
 
 

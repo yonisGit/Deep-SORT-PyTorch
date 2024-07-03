@@ -5,9 +5,7 @@ from . import kalman_filter
 from . import linear_assignment
 from . import iou_matching
 from .track import Track
-
-MAX_IOU = 0.4
-N_INIT = 6
+from ..tracker_config import TrackerConfig
 
 
 #   TODO: IMPORTANT
@@ -41,7 +39,8 @@ class Tracker:
 
     """
 
-    def __init__(self, metric, max_iou_distance=MAX_IOU, max_age=1700, n_init=N_INIT):
+    def __init__(self, metric, max_iou_distance=TrackerConfig.MAX_IOU, max_age=TrackerConfig.MAX_AGE,
+                 n_init=TrackerConfig.N_INIT):
         self.metric = metric
         self.max_iou_distance = max_iou_distance
         self.max_age = max_age

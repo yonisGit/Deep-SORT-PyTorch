@@ -5,17 +5,14 @@ from .sort.nn_matching import NearestNeighborDistanceMetric
 from .sort.preprocessing import non_max_suppression
 from .sort.detection import Detection
 from .sort.tracker import Tracker
+from .tracker_config import TrackerConfig
 
 __all__ = ['DeepSort']
-MIN_CONFIDENCE = 0.3
-# MIN_CONFIDENCE = 0.1
-MAX_DIST = 0.1
-# MAX_DIST = 0.1
 
 
 class DeepSort(object):
-    def __init__(self, model_path, max_dist=MAX_DIST, use_cuda=True):
-        self.min_confidence = MIN_CONFIDENCE
+    def __init__(self, model_path, max_dist=TrackerConfig.MAX_DIST, use_cuda=True):
+        self.min_confidence = TrackerConfig.MIN_CONFIDENCE
         self.nms_max_overlap = 1.0
 
         self.extractor = Extractor(model_path, use_cuda=use_cuda)
@@ -30,8 +27,7 @@ class DeepSort(object):
         # generate detections
         features = self._get_features(bbox_xywh, ori_img)
         bbox_tlwh = self._xywh_to_tlwh(bbox_xywh)
-        print(bbox_tlwh.shape)
-        print(confidences.shape)
+
         detections = [Detection(bbox_tlwh[i], conf, features[i]) for i, conf in enumerate(confidences) if
                       conf > self.min_confidence]
 

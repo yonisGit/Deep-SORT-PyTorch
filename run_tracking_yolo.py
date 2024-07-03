@@ -9,8 +9,8 @@ from util import adjust_normalized_boxes
 from YOLOv3 import YOLOv3
 from deep_sort import DeepSort
 from util import COLORS_10, draw_bboxes
-from reid.builder import build_reid
-from reid.utils import crop_imgs
+# from reid.builder import build_reid
+# from reid.utils import crop_imgs
 import torch
 from ultralytics import YOLO
 
@@ -33,12 +33,12 @@ class Detector(object):
                             conf_thresh=args.conf_thresh, nms_thresh=args.nms_thresh, use_cuda=use_cuda)
         self.yolo_new = YOLO("yolov9m.pt")
         self.yolo_new = YOLO("yolov10m.pt")
-        self.yolo_new = YOLO("yolov8x.pt")
+        # self.yolo_new = YOLO("yolov8x.pt")
         # self.yolo_new = YOLO("yolov8n-seg.pt")
         # self.vmd = VMD.from_yaml("VMD/configs/Altitude=100_motion=False_resolution=(512, 640).yaml")
         self.deepsort = DeepSort(args.deepsort_checkpoint, use_cuda=use_cuda)
         self.class_names = self.yolo3.class_names
-        self.reid = build_reid()
+        # self.reid = build_reid()
 
     def __enter__(self):
         assert os.path.isfile(self.args.VIDEO_PATH), "Error: path error"
@@ -101,7 +101,7 @@ class Detector(object):
                         identities = outputs[:, -1]
                         frame = draw_bboxes(frame, bbox_xyxy, identities)
 
-                frames.append(frame)
+                # frames.append(frame)
                 end = time.time()
                 print("time: {}s, fps: {}".format(end - start, 1 / (end - start)))
 
@@ -157,6 +157,7 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+    print(torch.cuda.is_available())
 
     with Detector(args) as det:
         det.detect()
