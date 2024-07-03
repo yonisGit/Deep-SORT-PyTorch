@@ -82,7 +82,7 @@ class Detector(object):
             self.vdo.release()
 
 
-def mask_irrelevant_classes(self, bbox_xcycwh, cls_conf, cls_ids):
+def mask_irrelevant_classes(bbox_xcycwh, cls_conf, cls_ids):
     cls_ids_clone = cls_ids
     cls_ids_clone += 1  # added 1 because comparison with 0 didn't work for some reason...
     mask = cls_ids_clone == 1  # looking only for person class
@@ -92,7 +92,7 @@ def mask_irrelevant_classes(self, bbox_xcycwh, cls_conf, cls_ids):
     return bbox_xcycwh, cls_conf
 
 
-def reid_testing(self, bbox_xcycwh, frame):
+def reid_testing(bbox_xcycwh, frame):
     img_metas = {}
     crops = crop_imgs(img=frame, img_metas=img_metas, bboxes=torch.tensor(bbox_xcycwh).clone(),
                       rescale=False)

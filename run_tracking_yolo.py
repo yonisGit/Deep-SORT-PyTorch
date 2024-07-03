@@ -13,7 +13,7 @@ from util import COLORS_10, draw_bboxes
 import torch
 from ultralytics import YOLO
 
-height, width = (720, 1280)
+# height, width = (720, 1280)
 
 
 class Detector(object):
@@ -25,7 +25,7 @@ class Detector(object):
         # self.yolo3 = YOLOv3(args.yolo_cfg, args.yolo_weights, args.yolo_names, is_xywh=True,
         #                     conf_thresh=args.conf_thresh, nms_thresh=args.nms_thresh, use_cuda=use_cuda)
         self.yolo_new = YOLO("yolov10m.pt")
-        self.mask_irrelevant_classes = False
+        self.mask_irrelevant_classes = True
         self.deepsort = DeepSort(args.deepsort_checkpoint, use_cuda=use_cuda)
         # self.class_names = self.yolo3.class_names
         # self.reid = build_reid()
@@ -45,11 +45,12 @@ class Detector(object):
 
     def detect(self):
 
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        video = cv2.VideoWriter(self.args.save_path, fourcc, 25., (width, height))
+        # fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        # video = cv2.VideoWriter(self.args.save_path, fourcc, 25., (width, height))
         while True:
             start = time.time()
             ret, frame = self.vdo.read()
+            print(frame.shape)
 
             if ret:
                 # bbox_xcycwh, cls_conf, cls_ids, = self.yolo3(frame)
@@ -89,7 +90,7 @@ def reid_testing(self, bbox_xcycwh, frame):
     embeds = self.reid.simple_test(crops)
 
 
-def mask_irrelevant_classes(self, bbox_xcycwh, cls_conf, cls_ids):
+def mask_irrelevant_classes(bbox_xcycwh, cls_conf, cls_ids):
     cls_ids_clone = cls_ids
     cls_ids_clone += 1  # added 1 because comparison with 0 didn't work for some reason...
     mask = cls_ids_clone == 1  # looking only for person class
