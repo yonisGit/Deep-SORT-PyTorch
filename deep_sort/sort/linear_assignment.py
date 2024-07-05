@@ -55,10 +55,10 @@ def min_cost_matching(
         return [], track_indices, detection_indices  # Nothing to match.
 
     cost_matrix = distance_metric(
-        tracks, detections, track_indices, detection_indices)
+        tracks, detections, track_indices, detection_indices)  # the cost_matrix after features and kalman distance.
     cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
 
-    row_indices, col_indices = linear_assignment(cost_matrix)
+    row_indices, col_indices = linear_assignment(cost_matrix) # solves the linear assignment problem for this matrix.
 
     matches, unmatched_tracks, unmatched_detections = [], [], []
     for col, detection_idx in enumerate(detection_indices):
@@ -185,11 +185,15 @@ def gate_cost_matrix(
     """
     gating_dim = 2 if only_position else 4
     gating_threshold = kalman_filter.chi2inv95[gating_dim]
-    measurements = np.asarray(
+    detections_bboxes = np.asarray(
         [detections[i].to_xyah() for i in detection_indices])
     for row, track_idx in enumerate(track_indices):
         track = tracks[track_idx]
         gating_distance = kf.gating_distance(
-            track.mean, track.covariance, measurements, only_position)
-        cost_matrix[row, gating_distance > gating_threshold] = gated_cost
+            track.mean, track.covariance, detections_bboxes,
+            only_position)  # calculate a distance array between a track and all the detections
+        # with the kalman filter params.
+        cost_matrix[
+            row, gating_distance > gating_threshold] = gated_cost  # every detection that has a kalman distance
+        # more than the kalman_thresh gets a very high cost which is updated in the final cost_matrix.
     return cost_matrix
