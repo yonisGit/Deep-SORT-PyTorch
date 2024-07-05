@@ -91,7 +91,9 @@ class Tracker:
             # the features list above, assign the track_id to connect between id and feature.
             track.features = []
         self.metric.partial_fit(
-            np.asarray(features), np.asarray(targets), active_targets)
+            np.asarray(features), np.asarray(targets),
+            active_targets)  # Just updating the dict of samples for every track with the
+        # new detected features (for new tracks they will get a list of size n_init).
 
     def update_matching_tracks_with_their_matching_detection(self, detections, matches):
         for track_idx, detection_idx in matches:
