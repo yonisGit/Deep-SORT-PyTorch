@@ -120,7 +120,7 @@ class Tracker:
                                                target_tracks_ids)  # creates a matrix of distances between all the
             # track samples and detections.
             # TODO: include an option to compare aggregated features in the distance instead of one feature at a time.
-            cost_matrix = linear_assignment.gate_cost_matrix(
+            cost_matrix = linear_assignment.gate_cost_matrix(  # TODO: understand exactly what happens here.
                 self.kf, cost_matrix, tracks, dets, track_indices,
                 detection_indices)
 
@@ -150,6 +150,8 @@ class Tracker:
             linear_assignment.min_cost_matching(
                 iou_matching.iou_cost, self.max_iou_distance, self.tracks,
                 detections, iou_track_candidates, unmatched_detections)
+
+        # TODO: add here another phase of matching with reid
 
         matches = matches_a + matches_b
         unmatched_tracks = list(set(unmatched_tracks_a + unmatched_tracks_b))

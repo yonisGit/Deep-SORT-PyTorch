@@ -58,7 +58,7 @@ def min_cost_matching(
         tracks, detections, track_indices, detection_indices)  # the cost_matrix after features and kalman distance.
     cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
 
-    row_indices, col_indices = linear_assignment(cost_matrix) # solves the linear assignment problem for this matrix.
+    row_indices, col_indices = linear_assignment(cost_matrix)  # solves the linear assignment problem for this matrix.
 
     matches, unmatched_tracks, unmatched_detections = [], [], []
     for col, detection_idx in enumerate(detection_indices):
