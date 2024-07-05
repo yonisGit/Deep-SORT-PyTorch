@@ -72,26 +72,42 @@ class Tracker:
             self._match(detections)
 
         # Update track set.
-        for track_idx, detection_idx in matches:
-            self.tracks[track_idx].update(
-                self.kf, detections[detection_idx])
-        for track_idx in unmatched_tracks:
-            self.tracks[track_idx].mark_missed()
-        for detection_idx in unmatched_detections:
-            self._initiate_track(detections[detection_idx])
-        self.tracks = [t for t in self.tracks if not t.is_deleted()]
+        self.update_matching_tracks_with_their_matching_detection(detections, matches)
+        self.mark_existing_track_as_missed(unmatched_tracks)
+        self.initialize_new_tracks(detections, unmatched_detections)
+        self.update_tracks_without_deleted_ones()
 
         # Update distance metric.
-        active_targets = [t.track_id for t in self.tracks if t.is_confirmed()]
+        active_targets = [t.track_id for t in self.tracks if
+                          t.is_confirmed()]  # adding new confirmed tracks to the list and removing missed tracks
+
         features, targets = [], []
         for track in self.tracks:
             if not track.is_confirmed():
                 continue
-            features += track.features
-            targets += [track.track_id for _ in track.features]
+            features += track.features  # For every confirmed track we append all the items in
+            # its list of feature embeddings.
+            targets += [track.track_id for _ in track.features]  # For every added feature embedding item in
+            # the features list above, assign the track_id to connect between id and feature.
             track.features = []
         self.metric.partial_fit(
             np.asarray(features), np.asarray(targets), active_targets)
+
+    def update_matching_tracks_with_their_matching_detection(self, detections, matches):
+        for track_idx, detection_idx in matches:
+            self.tracks[track_idx].update(
+                self.kf, detections[detection_idx])
+
+    def update_tracks_without_deleted_ones(self):
+        self.tracks = [t for t in self.tracks if not t.is_deleted()]
+
+    def mark_existing_track_as_missed(self, unmatched_tracks):
+        for track_idx in unmatched_tracks:
+            self.tracks[track_idx].mark_missed()
+
+    def initialize_new_tracks(self, detections, unmatched_detections):
+        for detection_idx in unmatched_detections:
+            self._initiate_track(detections[detection_idx])
 
     def _match(self, detections):
 

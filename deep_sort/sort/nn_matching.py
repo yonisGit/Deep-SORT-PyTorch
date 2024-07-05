@@ -122,7 +122,6 @@ class NearestNeighborDistanceMetric(object):
 
     def __init__(self, metric, matching_threshold, budget=None):
 
-
         if metric == "euclidean":
             self._metric = _nn_euclidean_distance
         elif metric == "cosine":
@@ -148,10 +147,11 @@ class NearestNeighborDistanceMetric(object):
 
         """
         for feature, target in zip(features, targets):
-            self.samples.setdefault(target, []).append(feature)
+            self.samples.setdefault(target, []).append(feature)  # add the new feature to the track feature dict.
             if self.budget is not None:
-                self.samples[target] = self.samples[target][-self.budget:]
-        self.samples = {k: self.samples[k] for k in active_targets}
+                self.samples[target] = self.samples[target][
+                                       -self.budget:]  # takes only the last self.budget items as samples.
+        self.samples = {k: self.samples[k] for k in active_targets}  # TODO: check if this line is redundant.
 
     def distance(self, features, targets):
         """Compute distance between features and targets.
