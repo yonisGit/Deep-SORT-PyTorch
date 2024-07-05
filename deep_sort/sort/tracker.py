@@ -114,9 +114,12 @@ class Tracker:
     def _match(self, detections):
 
         def gated_metric(tracks, dets, track_indices, detection_indices):
-            features = np.array([dets[i].feature for i in detection_indices])
-            targets = np.array([tracks[i].track_id for i in track_indices])
-            cost_matrix = self.metric.distance(features, targets)
+            detections_features = np.array([dets[i].feature for i in detection_indices])
+            target_tracks_ids = np.array([tracks[i].track_id for i in track_indices])
+            cost_matrix = self.metric.distance(detections_features,
+                                               target_tracks_ids)  # creates a matrix of distances between all the
+            # track samples and detections.
+            # TODO: include an option to compare aggregated features in the distance instead of one feature at a time.
             cost_matrix = linear_assignment.gate_cost_matrix(
                 self.kf, cost_matrix, tracks, dets, track_indices,
                 detection_indices)
@@ -126,9 +129,9 @@ class Tracker:
         # Split track set into confirmed and unconfirmed tracks.
         # Confirmed are tracks that appeared in at least n_init frames.
         confirmed_tracks = [
-            i for i, t in enumerate(self.tracks) if t.is_confirmed()]
+            i for i, t in enumerate(self.tracks) if t.is_confirmed()]  # already confirmed tracks.
         unconfirmed_tracks = [
-            i for i, t in enumerate(self.tracks) if not t.is_confirmed()]
+            i for i, t in enumerate(self.tracks) if not t.is_confirmed()]  # fresh tracks that wasn't confirmed yet.
 
         # Associate confirmed tracks using appearance features.
         matches_a, unmatched_tracks_a, unmatched_detections = \

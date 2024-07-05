@@ -1,6 +1,7 @@
 # vim: expandtab:ts=4:sw=4
 import time
 
+
 #   TODO: IMPORTANT
 class TrackState:
     """
@@ -143,7 +144,8 @@ class Track:
         self.hits += 1
         self.time_since_update = 0
         if self.state == TrackState.Tentative and self.hits >= self._n_init:
-            self.state = TrackState.Confirmed
+            self.state = TrackState.Confirmed  # Ones track gets confirmed, it stays confirmed until it
+            # passes the age without appearing at any frame.
 
     def mark_missed(self):
         """Mark this track as missed (no association at the current time step).

@@ -5,10 +5,10 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment as linear_assignment
 from . import kalman_filter
 
-
 INFTY_COST = 1e+5
 
-#TODO: IMPORTANT!
+
+# TODO: IMPORTANT!
 
 def min_cost_matching(
         distance_metric, max_distance, tracks, detections, track_indices=None,
@@ -122,25 +122,27 @@ def matching_cascade(
     if detection_indices is None:
         detection_indices = list(range(len(detections)))
 
-    unmatched_detections = detection_indices
+    unmatched_detections = detection_indices  # every detection is first initialized as unmatched.
     matches = []
     for level in range(cascade_depth):
-        if len(unmatched_detections) == 0:  # No detections left
+        if len(unmatched_detections) == 0:  # No detections left to match
             break
 
         track_indices_l = [
             k for k in track_indices
             if tracks[k].time_since_update == 1 + level
-        ]
-        if len(track_indices_l) == 0:  # Nothing to match at this level
+        ]  # Creating a list of tracks that appeared before 'level' frames.
+        # TODO: give priority to the number of features a track has, because it will be more reliable.
+
+        if len(track_indices_l) == 0:  # Nothing to match at this level (no tracks appeared before 'level' frames).
             continue
 
         matches_l, _, unmatched_detections = \
             min_cost_matching(
                 distance_metric, max_distance, tracks, detections,
                 track_indices_l, unmatched_detections)
-        matches += matches_l
-    unmatched_tracks = list(set(track_indices) - set(k for k, _ in matches))
+        matches += matches_l  # Appending <track_id, detection_id> couples of matches to a list.
+    unmatched_tracks = list(set(track_indices) - set(k for k, _ in matches))  # Tracks without a match.
     return matches, unmatched_tracks, unmatched_detections
 
 

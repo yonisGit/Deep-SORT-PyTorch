@@ -171,7 +171,10 @@ class NearestNeighborDistanceMetric(object):
             `targets[i]` and `features[j]`.
 
         """
-        cost_matrix = np.zeros((len(targets), len(features)))
+        cost_matrix = np.zeros(
+            (len(targets), len(features)))  # initialize a matrix of track ids as rows and detections as columns
         for i, target in enumerate(targets):
-            cost_matrix[i, :] = self._metric(self.samples[target], features)
+            cost_matrix[i, :] = self._metric(self.samples[target],
+                                             features)  # for every track, performs the distance calculation between
+            # every feature in his dict and the features of all the detections.
         return cost_matrix
