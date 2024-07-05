@@ -12,7 +12,7 @@ from deep_sort import DeepSort
 from reid.builder import build_reid
 from reid.utils import crop_imgs
 from util import adjust_normalized_boxes
-from util import draw_bboxes
+from util import draw_bboxes, show_image
 
 FPS = 25.
 
@@ -29,6 +29,8 @@ class Detector(object):
         self.vmd = VMD.from_yaml(VMD_CONFIG)
         self.deepsort = DeepSort(args.deepsort_checkpoint, use_cuda=use_cuda)
         self.mask_irrelevant_classes = False
+        self.skip_frames = False
+        self.number_of_frame_skips = 5
         self.reid = build_reid()
 
     def __enter__(self):
@@ -48,11 +50,17 @@ class Detector(object):
 
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         video = cv2.VideoWriter(self.args.save_path, fourcc, FPS, (width, height))
+        count = 0
         while True:
             start = time.time()
             ret, frame = self.vdo.read()
 
             if ret:
+                if self.skip_frames:
+                    count += 1
+                    if count % self.number_of_frame_skips != 0:
+                        continue
+                        
                 results = self.vmd(frame).to_numpy()
 
                 cls_conf = np.ones(results.shape[0])
@@ -73,10 +81,12 @@ class Detector(object):
 
                 end = time.time()
                 print("time: {}s, fps: {}".format(end - start, 1 / (end - start)))
+                show_image(frame)
                 video.write(frame)
             else:
                 video.release()
                 break
+
 
         if self.vdo:
             self.vdo.release()
