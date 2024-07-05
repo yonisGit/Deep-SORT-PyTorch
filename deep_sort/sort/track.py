@@ -72,7 +72,6 @@ class Track:
         self.hits = 1
         self.age = 1
         self.time_since_update = 0
-        # self.time_alive = time.time()
 
         self.state = TrackState.Tentative
         self.features = []
@@ -148,6 +147,8 @@ class Track:
 
     def mark_missed(self):
         """Mark this track as missed (no association at the current time step).
+        Happens when a track is not opened yet (did not pass n_init and then missed)
+        or when a track passed the allowed age.
         """
         if self.state == TrackState.Tentative:
             self.state = TrackState.Deleted
