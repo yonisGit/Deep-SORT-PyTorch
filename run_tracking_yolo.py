@@ -7,7 +7,7 @@ from distutils.util import strtobool
 
 from YOLOv3 import YOLOv3
 from deep_sort import DeepSort
-from util import COLORS_10, draw_bboxes,show_image
+from util import COLORS_10, draw_bboxes, show_image
 # from reid.builder import build_reid
 # from reid.utils import crop_imgs
 import torch
@@ -24,9 +24,11 @@ class Detector(object):
         self.vdo = cv2.VideoCapture()
         # self.yolo3 = YOLOv3(args.yolo_cfg, args.yolo_weights, args.yolo_names, is_xywh=True,
         #                     conf_thresh=args.conf_thresh, nms_thresh=args.nms_thresh, use_cuda=use_cuda)
-        self.yolo_new = YOLO("yolov10m.pt")
+        self.yolo_new = YOLO("yolov10x.pt")
         self.mask_irrelevant_classes = True
         self.deepsort = DeepSort(args.deepsort_checkpoint, use_cuda=use_cuda)
+        self.skip_frames = False
+        self.number_of_frame_skips = 3
         # self.class_names = self.yolo3.class_names
         # self.reid = build_reid()
 
@@ -47,12 +49,17 @@ class Detector(object):
 
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         video = cv2.VideoWriter(self.args.save_path, fourcc, 25., (width, height))
+        count = 0
         while True:
             start = time.time()
             ret, frame = self.vdo.read()
             print(frame.shape)
 
             if ret:
+                if self.skip_frames:
+                    count += 1
+                    if count % self.number_of_frame_skips != 0:
+                        continue
                 # bbox_xcycwh, cls_conf, cls_ids, = self.yolo3(frame)
                 frame_results = self.yolo_new(frame)[0].boxes
 
