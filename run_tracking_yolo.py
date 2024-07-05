@@ -7,7 +7,7 @@ from distutils.util import strtobool
 
 from YOLOv3 import YOLOv3
 from deep_sort import DeepSort
-from util import COLORS_10, draw_bboxes
+from util import COLORS_10, draw_bboxes,show_image
 # from reid.builder import build_reid
 # from reid.utils import crop_imgs
 import torch
@@ -73,7 +73,7 @@ class Detector(object):
 
                 end = time.time()
                 print("time: {}s, fps: {}".format(end - start, 1 / (end - start)))
-
+                show_image(frame)
                 video.write(frame)
             else:
                 video.release()

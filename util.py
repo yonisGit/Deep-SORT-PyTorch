@@ -79,6 +79,12 @@ def adjust_normalized_boxes(bboxes, h, w):
     return bboxes
 
 
+def show_image(frame):
+    cv2.imshow('tracks', frame)
+    if cv2.waitKey(1) & 0xFF == ord('s'):
+        pass
+
+
 if __name__ == '__main__':
     x = np.arange(10) / 10.
     x = np.array([0.5, 0.5, 0.5, 0.6, 1.])
