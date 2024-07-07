@@ -1,10 +1,11 @@
 class TrackerConfig(object):
     MIN_CONFIDENCE = 0.3
-    MAX_DIST = 0.32
+    MAX_DIST = 0.25
     MAX_IOU = 0.7
-    N_INIT = 10
+    N_INIT = 25
     MAX_AGE = 2000
     NN_BUDGET = 1000
+    ORIGINAL = False
 
 # GOOD FOR VMD:
     # MIN_CONFIDENCE = 0.3

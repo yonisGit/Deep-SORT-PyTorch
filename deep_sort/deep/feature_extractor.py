@@ -5,10 +5,10 @@ import cv2
 
 from .model import Net
 from ..SOLIDER.demo import get_model  # from https://github.com/tinyvision/SOLIDER/tree/main
+from ..tracker_config import TrackerConfig
 
 
 # swin weights from https://github.com/tinyvision/SOLIDER-REID
-
 
 class Extractor(object):
     def __init__(self, model_path, use_cuda=True):
@@ -17,7 +17,10 @@ class Extractor(object):
         state_dict = torch.load(model_path, map_location=lambda storage, loc: storage)['net_dict']
         self.net.load_state_dict(state_dict)
         print("Loading weights from {}... Done!".format(model_path))
-        # self.net = get_model()  # only if using swin
+
+        if not TrackerConfig.ORIGINAL:
+            self.net = get_model()
+
         self.net.to(self.device)
 
         self.size = (64, 128)
@@ -46,8 +49,12 @@ class Extractor(object):
         im_batch = self._preprocess(im_crops)
         with torch.no_grad():
             im_batch = im_batch.to(self.device)
-            features = self.net(im_batch)
-            # features, _ = self.net(im_batch)  # only if using swin
+
+            if TrackerConfig.ORIGINAL:
+                features = self.net(im_batch)
+            else:
+                features, _ = self.net(im_batch)
+
         return features.cpu().numpy()
 
 
