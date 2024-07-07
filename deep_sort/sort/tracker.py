@@ -116,6 +116,7 @@ class Tracker:
         def gated_metric(tracks, dets, track_indices, detection_indices):
             detections_features = np.array([dets[i].feature for i in detection_indices])
             target_tracks_ids = np.array([tracks[i].track_id for i in track_indices])
+            # TODO: find a better way to store the features for comparison
             cost_matrix = self.metric.distance(detections_features,
                                                target_tracks_ids)  # creates a matrix of distances between all the
             # track samples and detections.
