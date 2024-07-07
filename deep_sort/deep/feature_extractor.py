@@ -17,7 +17,7 @@ class Extractor(object):
         state_dict = torch.load(model_path, map_location=lambda storage, loc: storage)['net_dict']
         self.net.load_state_dict(state_dict)
         print("Loading weights from {}... Done!".format(model_path))
-        self.net = get_model()  # only if using swin
+        # self.net = get_model()  # only if using swin
         self.net.to(self.device)
 
         self.size = (64, 128)
@@ -46,7 +46,8 @@ class Extractor(object):
         im_batch = self._preprocess(im_crops)
         with torch.no_grad():
             im_batch = im_batch.to(self.device)
-            features, _ = self.net(im_batch)  # only if using swin
+            features = self.net(im_batch)
+            # features, _ = self.net(im_batch)  # only if using swin
         return features.cpu().numpy()
 
 
