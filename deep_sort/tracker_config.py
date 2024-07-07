@@ -1,6 +1,6 @@
 class TrackerConfig(object):
     MIN_CONFIDENCE = 0.3
-    MAX_DIST = 0.35
+    MAX_DIST = 0.32
     MAX_IOU = 0.7
     N_INIT = 10
     MAX_AGE = 2000
